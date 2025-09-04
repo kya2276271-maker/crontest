@@ -1,0 +1,38 @@
+name: every-5min
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # 5分おき（UTC基準）
+  workflow_dispatch:         # 手動実行ボタンも付ける
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    concurrency:
+      group: "every-5min"
+      cancel-in-progress: true  # 前の実行が残っていたらキャンセル
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (if any)
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt, skipping."
+          fi
+
+      - name: Run script
+        run: |
+          python scripts/hello.py
