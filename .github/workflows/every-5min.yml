@@ -3,8 +3,8 @@ name: every-5min
 on:
   schedule:
     - cron: "*/5 * * * *"   # 5分おき（UTC）
-  workflow_dispatch:         # 手動実行
-  push:                      # すぐ動かすためのトリガ（任意）
+  workflow_dispatch:
+  push:
     paths:
       - ".github/workflows/every-5min.yml"
       - "scripts/**"
@@ -19,10 +19,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show repo tree (where am I?)
+      - name: Show repo tree
         run: |
           echo "branch: $(git rev-parse --abbrev-ref HEAD)"
-          echo "pwd: $(pwd)"
+          pwd
           ls -la
           echo "---- scripts dir ----"
           [ -d scripts ] && ls -la scripts || echo "no scripts dir"
@@ -32,15 +32,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Sanity check Python
-        run: |
-          python -V
-          which python
-
-      - name: Run script (auto-detect path)
+      - name: Run script (no heredoc)
         shell: bash
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
           if [ -f scripts/hello.py ]; then
             echo "Running scripts/hello.py"
             python scripts/hello.py
@@ -48,9 +43,5 @@ jobs:
             echo "Running main.py"
             python main.py
           else
-            echo "No file found -> run inline Python"
-            python - <<'PY'
-            from datetime import datetime, timezone
-            now = datetime.now(timezone.utc).astimezone()
-            print("✅ Scheduled run OK")
-            print("Local time:", now.strftime("%Y-%m-%d %H:%M:%S %Z%z"))
+            echo "Running inline Python"
+            python -c 'from datetime import datetime, timezone; now=datetime.now(timezone.utc).astimezone(); print("✅ Scheduled run OK"); print("Local time:", now.strftime("%Y-%m-%d %H:%M:%S %Z%z"))'
