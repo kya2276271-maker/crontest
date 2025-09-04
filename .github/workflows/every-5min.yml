@@ -50,8 +50,7 @@ jobs:
           else
             echo "No file found -> run inline Python"
             python - <<'PY'
-          from datetime import datetime, timezone
-          now = datetime.now(timezone.utc).astimezone()
-          print("✅ Scheduled run OK")
-          print("Local time:", now.strftime("%Y-%m-%d %H:%M:%S %Z%z"))
-          PY
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc).astimezone()
+            print("✅ Scheduled run OK")
+            print("Local time:", now.strftime("%Y-%m-%d %H:%M:%S %Z%z"))
