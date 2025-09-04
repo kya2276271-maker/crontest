@@ -2,7 +2,7 @@ name: scheduled-run
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # 5分おき（UTC基準）
+    - cron: "*/30 * * * *"   # 5分おき（UTC基準）
   workflow_dispatch:         # 手動実行ボタン（記事の確認用フローに相当）
   push:                      # すぐ試す用：このYAML or main.pyに変更があれば起動
     paths:
