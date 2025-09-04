@@ -1,0 +1,30 @@
+name: scheduled-run
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # 5分おき（UTC基準）
+  workflow_dispatch:         # 手動実行ボタン（記事の確認用フローに相当）
+  push:                      # すぐ試す用：このYAML or main.pyに変更があれば起動
+    paths:
+      - ".github/workflows/scheduled.yml"
+      - "main.py"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4     # 記事の checkout ステップに相当
+      - name: Set up Python
+        uses: actions/setup-python@v5 # 記事はv1/3.8例。ここでは最新版でOK
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies    # 記事の「必要パッケージをインストール」②に相当
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run script              # 記事の「定期実行するファイルを指定」③に相当
+        run: |
+          python main.py
