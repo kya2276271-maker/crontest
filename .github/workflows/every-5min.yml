@@ -2,56 +2,37 @@ name: every-5min
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # 5分おき（UTC）
-  workflow_dispatch:         # 手動実行
-  push:                      # すぐ動かすためのトリガ（任意）
-    paths:
-      - ".github/workflows/every-5min.yml"
-      - "scripts/**"
-      - "main.py"
+    - cron: "*/5 * * * *"   # 5分おき（UTC基準）
+  workflow_dispatch:         # 手動実行ボタンも付ける
 
 jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+    concurrency:
+      group: "every-5min"
+      cancel-in-progress: true  # 前の実行が残っていたらキャンセル
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Show repo tree (where am I?)
-        run: |
-          echo "branch: $(git rev-parse --abbrev-ref HEAD)"
-          echo "pwd: $(pwd)"
-          ls -la
-          echo "---- scripts dir ----"
-          [ -d scripts ] && ls -la scripts || echo "no scripts dir"
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Sanity check Python
+      - name: Install dependencies (if any)
         run: |
-          python -V
-          which python
-
-      - name: Run script (auto-detect path)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -f scripts/hello.py ]; then
-            echo "Running scripts/hello.py"
-            python scripts/hello.py
-          elif [ -f main.py ]; then
-            echo "Running main.py"
-            python main.py
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
           else
-            echo "No file found -> run inline Python"
-            python - <<'PY'
-from datetime import datetime, timezone
-now = datetime.now(timezone.utc).astimezone()
-print("✅ Scheduled run OK")
-print("Local time:", now.strftime("%Y-%m-%d %H:%M:%S %Z%z"))
-PY
+            echo "No requirements.txt, skipping."
+          fi
+
+      - name: Run script
+        run: |
+          python scripts/hello.py
